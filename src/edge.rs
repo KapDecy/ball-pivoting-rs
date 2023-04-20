@@ -1,19 +1,20 @@
+use std::{cell::RefCell, rc::Rc};
+
 use crate::point::Point;
 
-
-#[derive(Clone)]
-pub struct Edge<'a> {
-    pub p1: &'a Point,
-    pub p2: &'a Point,
+#[derive(Clone, PartialEq)]
+pub struct Edge {
+    pub p1: Rc<RefCell<Point>>,
+    pub p2: Rc<RefCell<Point>>,
     pub num_triangles_this_edge_in: usize,
 }
 
-impl Edge<'_> {
-    pub fn new<'a>(p1: &'a Point, p2: &'a Point) -> Edge<'a> {
-        Edge {
+impl Edge {
+    pub fn new(p1: Rc<RefCell<Point>>, p2: Rc<RefCell<Point>>) -> Rc<RefCell<Edge>> {
+        Rc::new(RefCell::new(Edge {
             p1,
             p2,
             num_triangles_this_edge_in: 0,
-        }
+        }))
     }
 }

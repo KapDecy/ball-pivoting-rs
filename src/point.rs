@@ -1,5 +1,8 @@
+use std::{cell::RefCell, rc::Rc};
+
 use crate::utils::{self, *};
 
+#[derive(PartialEq)]
 pub struct Point {
     pub x: f32,
     pub y: f32,
@@ -12,15 +15,15 @@ pub struct Point {
 
 impl Point {
     // TODO cell_node and normal
-    pub fn new(x: f32, y: f32, z: f32, id: usize) -> Point {
-        Point {
+    pub fn new(x: f32, y: f32, z: f32, id: usize) -> Rc<RefCell<Point>> {
+        Rc::new(RefCell::new(Point {
             x,
             y,
             z,
             cell_code: None,
             id,
             is_used: false,
-        }
+        }))
     }
 
     pub fn neighbor_nodes(self) -> Vec<isize> {
