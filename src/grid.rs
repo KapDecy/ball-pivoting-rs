@@ -7,14 +7,14 @@ use crate::point::Point;
 use crate::utils;
 
 pub struct Grid {
-    all_points: Rc<RefCell<Vec<Rc<RefCell<Point>>>>>,
-    cells: HashMap<isize, Vec<Rc<RefCell<Point>>>>,
-    radius: f32,
-    num_cells_per_axis: f32,
-    bounding_box_size: f32,
-    edges: Vec<Rc<RefCell<Edge>>>,
+    pub all_points: Rc<RefCell<Vec<Rc<RefCell<Point>>>>>,
+    pub cells: HashMap<isize, Vec<Rc<RefCell<Point>>>>,
+    pub radius: f32,
+    pub num_cells_per_axis: f32,
+    pub bounding_box_size: f32,
+    pub edges: Vec<Rc<RefCell<Edge>>>,
     // triangles: Vec<Triangle>,
-    cell_size: f32,
+    pub cell_size: f32,
 }
 
 impl Grid {

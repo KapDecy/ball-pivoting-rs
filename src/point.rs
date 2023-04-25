@@ -1,4 +1,5 @@
 use std::{cell::RefCell, rc::Rc};
+use vecmath::Vector3;
 
 use crate::utils::{self, *};
 
@@ -8,26 +9,27 @@ pub struct Point {
     pub y: f32,
     pub z: f32,
     pub cell_code: Option<isize>,
-    //pub normal: Option<Normal>,
+    pub normal: Option<Vector3<f32>>,
     pub id: usize,
     pub is_used: bool,
 }
 
 impl Point {
     // TODO cell_node and normal
-    pub fn new(x: f32, y: f32, z: f32, id: usize) -> Rc<RefCell<Point>> {
+    pub fn new(x: f32, y: f32, z: f32, id: usize, normal: Option<Vector3<f32>>) -> Rc<RefCell<Point>> {
         Rc::new(RefCell::new(Point {
             x,
             y,
             z,
             cell_code: None,
+            normal,
             id,
             is_used: false,
         }))
     }
 
     pub fn neighbor_nodes(self) -> Vec<isize> {
-        let mut neightbor_nodes = vec![self.cell_code.unwrap()];
+        let mut neighbor_nodes = vec![self.cell_code.unwrap()];
 
         let (x, y, z) = decode_cell(self.cell_code.unwrap());
 
@@ -41,11 +43,11 @@ impl Point {
                     }
 
                     let cell_code = utils::encode_cell(cell_corner.0, cell_corner.1, cell_corner.2);
-                    neightbor_nodes.push(cell_code);
+                    neighbor_nodes.push(cell_code);
                 }
             }
         }
 
-        neightbor_nodes
+        neighbor_nodes
     }
 }
