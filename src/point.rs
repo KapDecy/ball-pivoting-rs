@@ -28,7 +28,7 @@ impl Point {
         }))
     }
 
-    pub fn neighbor_nodes(self) -> Vec<isize> {
+    pub fn neighbor_nodes(&self) -> Vec<isize> {
         let mut neighbor_nodes = vec![self.cell_code.unwrap()];
 
         let (x, y, z) = decode_cell(self.cell_code.unwrap());

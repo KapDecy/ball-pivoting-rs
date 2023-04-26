@@ -13,7 +13,7 @@ pub struct Grid {
     pub num_cells_per_axis: f32,
     pub bounding_box_size: f32,
     pub edges: Vec<Rc<RefCell<Edge>>>,
-    // triangles: Vec<Triangle>,
+    pub triangles: Vec<[Rc<RefCell<Point>>; 6]>,
     pub cell_size: f32,
 }
 
@@ -26,6 +26,7 @@ impl Grid {
             num_cells_per_axis: 0.0,
             bounding_box_size: 0.0,
             edges: vec![],
+            triangles: vec![],
             cell_size: 0.0,
         };
         grid.init_with_data();

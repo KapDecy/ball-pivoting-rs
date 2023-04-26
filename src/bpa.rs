@@ -7,7 +7,7 @@ use itertools::Itertools;
 use vecmath::{vec3_cross, vec3_dot};
 
 use crate::{edge::Edge, grid::Grid, point::Point, utils};
-use crate::utils::{calc_distance_points, calc_incircle_radius};
+use crate::utils::{calc_distance_points, calc_incircle_radius, calc_min_max_angle_of_triangle};
 
 struct BPA {
     first_free_point_index: usize,
@@ -124,10 +124,11 @@ impl BPA {
         todo!()
     }
 
-    pub fn find_seed_triangle(&self, mut first_point_index: usize, num_recursion_calls: usize) -> (isize, Vec<isize>) {
+    pub fn find_seed_triangle(&mut self, mut first_point_index: usize, num_recursion_calls: usize) -> (isize, (Rc<RefCell<Edge>>, Rc<RefCell<Edge>>, Rc<RefCell<Edge>>), usize) {
         if num_recursion_calls > self.points.borrow().len() {
             println!("i was here");
-            return (-1, vec![-1, -1]);
+            panic!("strange shit in \"find_seed_triangle\"")
+            // return (-1, vec![-1, -1]);
         }
 
         if first_point_index >= (self.points.borrow().len() - 1) {
@@ -182,7 +183,7 @@ impl BPA {
             let limit_points = 5;
             let possible_points = possible_points[..limit_points].iter().collect_vec();
 
-            for (i, p3) in possible_points.iter().enumerate().map(|(i, p3)| (i, *p3)) {
+            for p3 in possible_points.iter().cloned() {
                 if (p3.borrow().x == p1.borrow().x && p3.borrow().y == p1.borrow().y && p3.borrow().z == p1.borrow().z)
                     || (p2.borrow().x == p3.borrow().x && p2.borrow().y == p3.borrow().y && p2.borrow().z == p3.borrow().z) {
                     continue;
@@ -222,15 +223,56 @@ impl BPA {
                         continue;
                     }
 
+                    let are_p1_p3_closing_another_triangle_in_the_mesh =
+                        self.is_there_a_path_between_two_points(p1.clone(), p3.clone(), p2.clone());
+                    let are_p2_p3_closing_another_triangle_in_the_mesh =
+                        self.is_there_a_path_between_two_points(p2.clone(), p3.clone(), p1.clone());
+                    let are_p1_p2_closing_another_triangle_in_the_mesh =
+                        self.is_there_a_path_between_two_points(p1.clone(), p2.clone(), p3.clone());
 
-                    todo!("Продолжить тут: https://github.com/Lotemn102/Ball-Pivoting-Algorithm/blob/34edabac94a4ecbc01741ecc76df0d24cd6f1e2c/bpa.py#L287");
+                    let mut e1 = Edge::new(p1.clone(), p3.clone());
+                    e1.borrow_mut().num_triangles_this_edge_in += 1;
+                    if are_p1_p3_closing_another_triangle_in_the_mesh {
+                        e1.borrow_mut().num_triangles_this_edge_in += 1;
+                    }
+                    let mut e2 = Edge::new(p1.clone(), p2.clone());
+                    e2.borrow_mut().num_triangles_this_edge_in += 1;
+                    if are_p1_p2_closing_another_triangle_in_the_mesh {
+                        e2.borrow_mut().num_triangles_this_edge_in += 1;
+                    }
+                    let mut e3 = Edge::new(p2.clone(), p3.clone());
+                    e3.borrow_mut().num_triangles_this_edge_in += 1;
+                    if are_p2_p3_closing_another_triangle_in_the_mesh {
+                        e3.borrow_mut().num_triangles_this_edge_in += 1;
+                    }
 
+                    let (min_angle, max_angle) = calc_min_max_angle_of_triangle(e1.clone(), e2.clone(), e3.clone());
+
+                    if max_angle > 170. || min_angle < 20. {
+                        continue
+                    }
+
+                    self.grid.edges.push(e1.clone());
+                    self.grid.edges.push(e2.clone());
+                    self.grid.edges.push(e3.clone());
+
+                    let mut triangle =
+                        [e1.borrow().p1.clone(), e1.borrow().p2.clone(), e2.borrow().p1.clone(), e2.borrow().p2.clone(),e3.borrow().p1.clone(), e3.borrow().p2.clone()];
+                    triangle.sort_by(|p1, p2| {p1.borrow().z.total_cmp(&p2.borrow().z)});
+
+                    self.grid.triangles.push(triangle);
+                    self.first_free_point_index += 1;
+
+                    p1.borrow_mut().is_used = true;
+                    p2.borrow_mut().is_used = true;
+                    p2.borrow_mut().is_used = true;
+
+                    return (1, (e1, e2, e3), first_point_index);
                 }
             }
         }
 
-
-        return ;
+        self.find_seed_triangle(first_point_index + 1, num_recursion_calls +1)
     }
 
     fn is_there_a_path_between_two_points(&self, p1: Rc<RefCell<Point>>, p2: Rc<RefCell<Point>>, point_of_triangle_we_creating: Rc<RefCell<Point>>) -> bool {
